@@ -10,26 +10,29 @@ import Dictionary from "./pages/Dictionary";
 import Exercises from "./pages/Exercises";
 import WritingPractice from "./pages/WritingPractice";
 import Consultation from "./pages/Consultation";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dictionary" element={<Dictionary />} />
-          <Route path="/exercises" element={<Exercises />} />
-          <Route path="/writing" element={<WritingPractice />} />
-          <Route path="/consultation" element={<Consultation />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/dictionary" element={<Dictionary />} />
+            <Route path="/exercises" element={<Exercises />} />
+            <Route path="/writing" element={<WritingPractice />} />
+            <Route path="/consultation" element={<Consultation />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

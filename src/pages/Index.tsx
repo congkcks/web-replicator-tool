@@ -48,7 +48,7 @@ const Index: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col dark:bg-gray-900">
       <Header />
       <main className="flex-1 container max-w-screen-xl mx-auto py-12 px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -9,7 +9,7 @@ interface FeatureCardProps {
   icon: React.ReactNode;
   iconBg: string;
   delay: number;
-  onClick?: () => void; // Added the onClick prop as optional
+  onClick?: () => void;
 }
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ 
@@ -23,16 +23,16 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
 }) => {
   return (
     <div 
-      className="feature-card animate-fade-in cursor-pointer"
+      className="feature-card dark:bg-gray-800 dark:shadow-gray-900/30 animate-fade-in cursor-pointer"
       style={{ animationDelay: `${delay}ms` }}
-      onClick={onClick} // Use the onClick handler
+      onClick={onClick}
     >
       <div className={cn("feature-icon mx-auto", iconBg)}>
         {icon}
       </div>
-      <h2 className="feature-title">{title}</h2>
-      <p className="feature-subtitle">{subtitle}</p>
-      <p className="feature-description">{description}</p>
+      <h2 className="feature-title dark:text-white">{title}</h2>
+      <p className="feature-subtitle dark:text-gray-400">{subtitle}</p>
+      <p className="feature-description dark:text-gray-300">{description}</p>
     </div>
   );
 };
