@@ -3,13 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'Inter';
-  src: url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-  font-display: swap;
-}
-
 @layer base {
+  @font-face {
+    font-family: 'Inter';
+    src: url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    font-display: swap;
+  }
+
   :root {
     --background: 240 43% 97%;
     --foreground: 222.2 84% 4.9%;
