@@ -1,10 +1,13 @@
 
 import React from 'react';
 import { BookText, GraduationCap, Pen, MessageSquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import FeatureCard from '@/components/FeatureCard';
 
 const Index: React.FC = () => {
+  const navigate = useNavigate();
+
   const features = [
     {
       title: "TỪ ĐIỂN",
@@ -12,7 +15,8 @@ const Index: React.FC = () => {
       description: "Truy cập định nghĩa từ, thành ngữ và cụm động từ với ngữ cảnh của từ.",
       icon: <BookText size={32} color="white" />,
       iconBg: "bg-engace-blue",
-      delay: 100
+      delay: 100,
+      onClick: () => navigate('/dictionary')
     },
     {
       title: "BÀI TẬP",
@@ -20,7 +24,8 @@ const Index: React.FC = () => {
       description: "Luyện tập với các bài kiểm tra được điều chỉnh theo trình độ và sở thích của bạn.",
       icon: <GraduationCap size={32} color="white" />,
       iconBg: "bg-engace-pink",
-      delay: 200
+      delay: 200,
+      onClick: () => navigate('/exercises')
     },
     {
       title: "LUYỆN VIẾT",
@@ -28,7 +33,8 @@ const Index: React.FC = () => {
       description: "Nhận phản hồi và gợi ý ngay lập tức để cải thiện kỹ năng viết tiếng Anh.",
       icon: <Pen size={32} color="white" />,
       iconBg: "bg-engace-green",
-      delay: 300
+      delay: 300,
+      onClick: () => navigate('/writing')
     },
     {
       title: "TƯ VẤN",
@@ -36,7 +42,8 @@ const Index: React.FC = () => {
       description: "Tương tác với gia sư AI để được hướng dẫn và hỗ trợ tự học tiếng Anh.",
       icon: <MessageSquare size={32} color="white" />,
       iconBg: "bg-engace-orange",
-      delay: 400
+      delay: 400,
+      onClick: () => navigate('/consultation')
     }
   ];
 
@@ -54,6 +61,7 @@ const Index: React.FC = () => {
               icon={feature.icon}
               iconBg={feature.iconBg}
               delay={feature.delay}
+              onClick={feature.onClick}
             />
           ))}
         </div>
