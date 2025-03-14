@@ -1,10 +1,17 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Inter';
+  src: url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  font-display: swap;
+}
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 240 43% 97%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -13,7 +20,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 246 84% 60%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -35,19 +42,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -96,6 +96,34 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-engace-light text-foreground font-inter antialiased;
+  }
+
+  .feature-card {
+    @apply bg-white rounded-2xl p-6 shadow-sm overflow-hidden transition-all duration-300 ease-in-out;
+  }
+
+  .feature-card:hover {
+    @apply shadow-md transform-gpu scale-[1.01];
+  }
+
+  .feature-icon {
+    @apply flex items-center justify-center w-16 h-16 rounded-xl mb-4 transition-transform duration-300 ease-in-out;
+  }
+
+  .feature-card:hover .feature-icon {
+    @apply scale-110;
+  }
+
+  .feature-title {
+    @apply text-2xl font-bold text-center mb-1;
+  }
+
+  .feature-subtitle {
+    @apply text-base text-gray-500 text-center mb-4;
+  }
+
+  .feature-description {
+    @apply text-gray-600 text-center;
   }
 }
