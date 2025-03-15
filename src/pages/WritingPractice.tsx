@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 const WritingPractice: React.FC = () => {
   const navigate = useNavigate();
-  const [showFeedback, setShowFeedback] = useState(true);
+  const [showFeedback, setShowFeedback] = useState(false);
   
   const feedbackData = {
     title: "1. Tổng quan",
