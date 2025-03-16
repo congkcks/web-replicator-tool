@@ -9,7 +9,7 @@ interface LogoProps {
 const Logo: React.FC<LogoProps> = ({ className }) => {
   return (
     <div className={cn("flex items-center", className)}>
-      <span className="text-2xl font-bold text-engace-purple">Eng<span className="text-engace-purple">Ace</span></span>
+      <span className="text-2xl font-bold text-engace-purple">CDK<span className="text-engace-purple">Ace</span></span>
     </div>
   );
 };
