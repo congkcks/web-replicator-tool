@@ -144,7 +144,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ open, onOpenChange }) => {
             
             <div>
               <h4 className="font-medium">3. Làm thế nào để xuất dữ liệu học tập của tôi?</h4>
-              <p>Bạn có thể xuất dữ liệu học tập từ mục "Cài đặt tài khoản" > "Dữ liệu cá nhân" > "Xuất dữ liệu". Dữ liệu sẽ được xuất dưới dạng file CSV hoặc PDF.</p>
+              <p>Bạn có thể xuất dữ liệu học tập từ mục "Cài đặt tài khoản" {'>>'} "Dữ liệu cá nhân" {'>>'} "Xuất dữ liệu". Dữ liệu sẽ được xuất dưới dạng file CSV hoặc PDF.</p>
             </div>
             
             <div>
