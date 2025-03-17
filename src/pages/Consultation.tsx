@@ -18,37 +18,34 @@ const Consultation: React.FC = () => {
   useEffect(() => {
     const loadInitialMessages = async () => {
       try {
-        // In a real-world scenario, this would call the API
-        // For demonstration, we'll use mock data
+        setIsLoading(true);
         
-        // Uncomment for production with real API
+        // In a real-world scenario with actual API:
         // const history = await consultationService.getConversationHistory();
         // if (history.length > 0) {
         //   setMessages(history[0].messages);
         // } else {
         //   // Set default welcome message
-        //   setMessages([
-        //     {
-        //       id: 1,
-        //       content: 'Chào! Mình là CDKAce, trợ lý ảo được thiết kế riêng để hỗ trợ bạn học tiếng Anh. 😊',
-        //       isUser: false,
-        //       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        //     }
-        //   ]);
+        //   setMessages([defaultWelcomeMessage]);
         // }
         
-        // Mock data
-        setMessages([
-          {
-            id: 1,
-            content: 'Chào! Mình là CDKAce, trợ lý ảo được thiết kế riêng để hỗ trợ bạn học tiếng Anh nè. 😊\n\nMình luôn cố gắng hỗ trợ bạn tốt nhất, nhưng đôi khi vẫn có thể mắc sai sót, nên bạn nhớ kiểm tra lại những thông tin quan trọng nha!',
-            isUser: false,
-            timestamp: '10:08 PM'
-          }
-        ]);
+        // Mock data for development
+        setTimeout(() => {
+          setMessages([
+            {
+              id: 1,
+              content: 'Chào! Mình là CDKAce, trợ lý ảo được thiết kế riêng để hỗ trợ bạn học tiếng Anh nè. 😊\n\nMình luôn cố gắng hỗ trợ bạn tốt nhất, nhưng đôi khi vẫn có thể mắc sai sót, nên bạn nhớ kiểm tra lại những thông tin quan trọng nha!',
+              isUser: false,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }
+          ]);
+          setIsLoading(false);
+        }, 1000);
+        
       } catch (err) {
         console.error('Error loading conversation history:', err);
         error('Không thể tải lịch sử trò chuyện', 'Vui lòng thử lại sau');
+        setIsLoading(false);
       }
     };
     
@@ -75,14 +72,11 @@ const Consultation: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // In a real-world scenario, this would call the API
-      // For demonstration, we'll simulate an API call with a timeout
-      
-      // Uncomment for production with real API
+      // In a real-world scenario with actual API:
       // const response = await consultationService.sendMessage(message.trim());
       // setMessages(prev => [...prev, response]);
       
-      // Mock response
+      // Mock response for development
       setTimeout(() => {
         const botResponse: Message = {
           id: Date.now() + 1,
@@ -111,23 +105,30 @@ const Consultation: React.FC = () => {
 
   const handleClearConversation = async () => {
     try {
-      // In a real-world scenario, this would call the API
+      setIsLoading(true);
+      
+      // In a real-world scenario with actual API:
       // await consultationService.clearConversation();
       
-      // For demonstration
-      setMessages([
-        {
-          id: Date.now(),
-          content: 'Cuộc trò chuyện đã được làm mới. Bạn có thể bắt đầu cuộc trò chuyện mới!',
-          isUser: false,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ]);
+      // For development
+      setTimeout(() => {
+        setMessages([
+          {
+            id: Date.now(),
+            content: 'Cuộc trò chuyện đã được làm mới. Bạn có thể bắt đầu cuộc trò chuyện mới!',
+            isUser: false,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+        
+        setIsLoading(false);
+        success('Đã xóa cuộc trò chuyện', 'Cuộc trò chuyện đã được làm mới');
+      }, 500);
       
-      success('Đã xóa cuộc trò chuyện', 'Cuộc trò chuyện đã được làm mới');
     } catch (err) {
       console.error('Error clearing conversation:', err);
       error('Không thể xóa cuộc trò chuyện', 'Vui lòng thử lại sau');
+      setIsLoading(false);
     }
   };
 
@@ -148,6 +149,7 @@ const Consultation: React.FC = () => {
               size="sm" 
               className="text-red-500 hover:text-red-600 hover:bg-red-50"
               onClick={handleClearConversation}
+              disabled={isLoading}
             >
               Xóa cuộc trò chuyện
             </Button>

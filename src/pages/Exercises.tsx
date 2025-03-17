@@ -9,9 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { exerciseService, ExerciseParams, Question, ExerciseSet } from '@/services/exerciseService';
 
 const Exercises: React.FC = () => {
   const navigate = useNavigate();
+  const { success, error } = useToast();
   const [showExercise, setShowExercise] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [totalQuestions, setTotalQuestions] = useState(10);
@@ -20,18 +23,108 @@ const Exercises: React.FC = () => {
   const [topic, setTopic] = useState('');
   const [questionCount, setQuestionCount] = useState('10');
   const [exerciseType, setExerciseType] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [exerciseSet, setExerciseSet] = useState<ExerciseSet | null>(null);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
 
-  const question = {
-    text: "January is the first month of the ____.",
-    options: ["day", "week", "year", "season"]
+  const handleCreateExercise = async () => {
+    if (!topic.trim()) {
+      error('Vui lòng nhập chủ đề', 'Chủ đề không được để trống');
+      return;
+    }
+    
+    if (!exerciseType) {
+      error('Vui lòng chọn dạng bài tập', 'Dạng bài tập không được để trống');
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      const params: ExerciseParams = {
+        topic: topic.trim(),
+        questionCount: Number(questionCount),
+        exerciseType
+      };
+      
+      // For demo/development, use mock data to avoid API calls
+      // In production, uncomment the API call and remove mock data
+      
+      // const result = await exerciseService.generateExercise(params);
+      // setExerciseSet(result);
+      
+      // Mock data for development
+      setTimeout(() => {
+        const mockExerciseSet: ExerciseSet = {
+          id: '12345',
+          topic: params.topic,
+          questions: Array.from({ length: Number(questionCount) }).map((_, index) => ({
+            id: index + 1,
+            text: index === 0 ? "January is the first month of the ____." : `This is question ${index + 1} about ${params.topic}`,
+            options: ["day", "week", "year", "season"]
+          })),
+          timeLimit: 600 // 10 minutes
+        };
+        
+        setExerciseSet(mockExerciseSet);
+        setTotalQuestions(mockExerciseSet.questions.length);
+        setCurrentQuestion(1);
+        setShowExercise(true);
+        setIsLoading(false);
+        success('Đã tạo bài tập', 'Bài tập đã được tạo thành công');
+      }, 1500);
+      
+    } catch (err) {
+      console.error('Error creating exercise:', err);
+      error('Không thể tạo bài tập', 'Vui lòng thử lại sau');
+      setIsLoading(false);
+    }
   };
-
-  // Progress percentage calculation
-  const progressPercentage = (currentQuestion / totalQuestions) * 100;
-
-  const handleCreateExercise = () => {
-    setTotalQuestions(Number(questionCount));
-    setShowExercise(true);
+  
+  const handleSelectAnswer = (questionId: number, answer: string) => {
+    setSelectedAnswer(answer);
+    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+  };
+  
+  const goToNextQuestion = () => {
+    if (currentQuestion < totalQuestions) {
+      setCurrentQuestion(currentQuestion + 1);
+      setSelectedAnswer(answers[currentQuestion + 1] || null);
+    }
+  };
+  
+  const goToPreviousQuestion = () => {
+    if (currentQuestion > 1) {
+      setCurrentQuestion(currentQuestion - 1);
+      setSelectedAnswer(answers[currentQuestion - 1] || null);
+    }
+  };
+  
+  const handleSubmitExercise = async () => {
+    if (!exerciseSet) return;
+    
+    try {
+      setIsLoading(true);
+      
+      // For demo/development, use mock data to avoid API calls
+      // In production, uncomment the API call and remove mock data
+      
+      // const result = await exerciseService.submitAnswers(exerciseSet.id, answers);
+      
+      // Mock data for development
+      setTimeout(() => {
+        setIsLoading(false);
+        success('Đã nộp bài', 'Bài tập đã được nộp thành công');
+        // Navigate to results page or show results here
+        // For now, just go back to exercise creation
+        setShowExercise(false);
+      }, 1000);
+      
+    } catch (err) {
+      console.error('Error submitting exercise:', err);
+      error('Không thể nộp bài', 'Vui lòng thử lại sau');
+      setIsLoading(false);
+    }
   };
 
   const suggestedTopics = [
@@ -48,6 +141,16 @@ const Exercises: React.FC = () => {
     { value: "conditional", label: "Conditional Sentences: Câu điều kiện" },
     { value: "indirect-speech", label: "Indirect Speech: Câu gián tiếp" }
   ];
+
+  // Progress percentage calculation
+  const progressPercentage = (currentQuestion / totalQuestions) * 100;
+  
+  // Current question data
+  const question = exerciseSet?.questions[currentQuestion - 1] || {
+    id: 1,
+    text: "Loading question...",
+    options: []
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-pink-50 to-pink-100 dark:from-gray-900 dark:to-gray-800">
@@ -85,14 +188,14 @@ const Exercises: React.FC = () => {
                   <Label className="text-gray-700 dark:text-gray-300 font-medium">Chủ đề gợi ý</Label>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {suggestedTopics.map((topic, index) => (
+                  {suggestedTopics.map((suggestedTopic, index) => (
                     <Button 
                       key={index}
                       variant="outline" 
                       className="bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => setTopic(topic)}
+                      onClick={() => setTopic(suggestedTopic)}
                     >
-                      {topic}
+                      {suggestedTopic}
                     </Button>
                   ))}
                 </div>
@@ -128,9 +231,10 @@ const Exercises: React.FC = () => {
               <Button 
                 className="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2 text-lg"
                 onClick={handleCreateExercise}
+                disabled={isLoading}
               >
                 <GraduationCap size={20} />
-                Tạo bài tập
+                {isLoading ? 'Đang tạo bài tập...' : 'Tạo bài tập'}
               </Button>
             </div>
           </>
@@ -166,12 +270,7 @@ const Exercises: React.FC = () => {
                 </div>
               </div>
               
-              <Progress value={progressPercentage} className="h-2 bg-gray-200 dark:bg-gray-700">
-                <div 
-                  className="h-full bg-engace-pink rounded-full" 
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </Progress>
+              <Progress value={progressPercentage} className="h-2 bg-gray-200 dark:bg-gray-700" />
             </Card>
 
             <div className="mb-6">
@@ -189,7 +288,7 @@ const Exercises: React.FC = () => {
                           ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-engace-pink' 
                           : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
-                      onClick={() => setSelectedAnswer(option)}
+                      onClick={() => handleSelectAnswer(question.id, option)}
                     >
                       {option}
                     </button>
@@ -201,11 +300,15 @@ const Exercises: React.FC = () => {
                 <Button 
                   variant="outline" 
                   className="flex items-center gap-2 dark:bg-gray-800 dark:text-white dark:border-gray-700"
+                  onClick={goToPreviousQuestion}
+                  disabled={currentQuestion === 1}
                 >
                   Câu trước
                 </Button>
                 <Button 
                   className="flex items-center gap-2 bg-engace-pink hover:bg-engace-pink/90 px-6"
+                  onClick={goToNextQuestion}
+                  disabled={currentQuestion === totalQuestions}
                 >
                   Câu tiếp
                   <ArrowRight size={18} />
@@ -213,8 +316,12 @@ const Exercises: React.FC = () => {
               </div>
             </div>
 
-            <Button className="w-full py-6 bg-gray-400 hover:bg-gray-500 dark:bg-gray-600 dark:hover:bg-gray-500 rounded-xl flex items-center justify-center gap-2 text-lg">
-              Nộp bài ngay
+            <Button 
+              className="w-full py-6 bg-gray-400 hover:bg-gray-500 dark:bg-gray-600 dark:hover:bg-gray-500 rounded-xl flex items-center justify-center gap-2 text-lg"
+              onClick={handleSubmitExercise}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Đang xử lý...' : 'Nộp bài ngay'}
             </Button>
           </>
         )}

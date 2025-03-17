@@ -39,11 +39,28 @@ export const exerciseService = {
   // Generate exercise
   generateExercise: async (params: ExerciseParams): Promise<ExerciseSet> => {
     try {
-      const response = await apiService.post<ApiResponse<ExerciseSet>>(
-        '/exercises/generate', 
-        params
-      );
-      return response.data;
+      // Get the raw response first
+      const response = await fetch(`${apiService.getBaseUrl()}/api/Exercises/Generate`, {
+        method: 'POST',
+        headers: apiService.getHeaders(),
+        body: JSON.stringify(params)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      // Check the content type to determine how to process the response
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        // If it's JSON, parse it as JSON
+        const jsonData = await response.json();
+        return jsonData.data || jsonData;
+      } else {
+        // If it's not JSON, throw an error
+        throw new Error('Unexpected response format');
+      }
     } catch (error) {
       console.error('Error generating exercise:', error);
       throw error;
@@ -53,11 +70,18 @@ export const exerciseService = {
   // Submit exercise answers
   submitAnswers: async (exerciseId: string, answers: Record<number, string>): Promise<SubmissionResult> => {
     try {
-      const response = await apiService.post<ApiResponse<SubmissionResult>>(
-        `/exercises/${exerciseId}/submit`, 
-        { answers }
-      );
-      return response.data;
+      const response = await fetch(`${apiService.getBaseUrl()}/api/Exercises/${exerciseId}/Submit`, {
+        method: 'POST',
+        headers: apiService.getHeaders(),
+        body: JSON.stringify({ answers })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      const jsonData = await response.json();
+      return jsonData.data || jsonData;
     } catch (error) {
       console.error('Error submitting answers:', error);
       throw error;
@@ -67,8 +91,8 @@ export const exerciseService = {
   // Get exercise history
   getExerciseHistory: async (): Promise<ExerciseSet[]> => {
     try {
-      const response = await apiService.get<ApiResponse<ExerciseSet[]>>('/exercises/history');
-      return response.data;
+      const response = await apiService.get<ApiResponse<ExerciseSet[]>>('/api/Exercises/History');
+      return (response as ApiResponse<ExerciseSet[]>).data || [];
     } catch (error) {
       console.error('Error fetching exercise history:', error);
       throw error;
@@ -78,8 +102,8 @@ export const exerciseService = {
   // Get exercise by ID
   getExerciseById: async (exerciseId: string): Promise<ExerciseSet> => {
     try {
-      const response = await apiService.get<ApiResponse<ExerciseSet>>(`/exercises/${exerciseId}`);
-      return response.data;
+      const response = await apiService.get<ApiResponse<ExerciseSet>>(`/api/Exercises/${exerciseId}`);
+      return (response as ApiResponse<ExerciseSet>).data;
     } catch (error) {
       console.error('Error fetching exercise:', error);
       throw error;

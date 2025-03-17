@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Pen, Upload, ArrowLeft, Copy } from 'lucide-react';
+import { Pen, Upload, ArrowLeft, Copy, Loader2 } from 'lucide-react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,7 +10,7 @@ import { writingService, WritingFeedback, WritingSubmission } from '@/services/w
 
 const WritingPractice: React.FC = () => {
   const navigate = useNavigate();
-  const { success, error, loading } = useToast();
+  const { success, error } = useToast();
   const [showFeedback, setShowFeedback] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [prompt, setPrompt] = useState('');
@@ -30,65 +30,56 @@ const WritingPractice: React.FC = () => {
     
     try {
       setIsSubmitting(true);
-      const toastId = loading('Đang xử lý bài viết của bạn...', 'Vui lòng đợi trong giây lát');
       
       const submission: WritingSubmission = {
         prompt: prompt,
         content: content
       };
       
-      // In a real-world scenario, this would call the API
-      // For now, we'll simulate an API call with a timeout
-      setTimeout(async () => {
-        try {
-          // Uncomment this in production with real API
-          // const result = await writingService.submitWriting(submission);
-          // setFeedbackData(result);
-          
-          // Mock response for demonstration
-          const mockFeedback: WritingFeedback = {
-            title: "1. Tổng quan",
-            points: [
-              "Bài viết của bạn là một đoạn văn ngắn gọn giới thiệu về gia đình và tầm quan trọng của gia đình đối với bạn.",
-              "Nhìn chung, bài viết đã đáp ứng được yêu cầu đề bài ở mức độ cơ bản, thể hiện được tình cảm và sự trân trọng của bạn dành cho gia đình.",
-              "Điểm mạnh nổi bật là bạn đã diễn đạt được ý chính một cách rõ ràng và mạch lạc, sử dụng từ vựng phù hợp với trình độ hiện tại.",
-              "Tuy nhiên, để bài viết trở nên tốt hơn, bạn cần chú ý hơn đến việc sử dụng cấu trúc câu đơn giản và tự nhiên hơn, cũng như mở rộng vốn từ vựng cơ bản về chủ đề gia đình."
-            ],
-            sections: [
-              {
-                title: "2. Phân tích chi tiết",
-                subsections: [
-                  {
-                    title: "2.1. Mức độ hoàn thành yêu cầu đề bài",
-                    points: [
-                      {
-                        question: "Bài viết có bám sát đề bài không?",
-                        answer: "Có, bài viết bám sát đề bài \"gia đình\" bằng cách giới thiệu về gia đình bạn và những giá trị mà gia đình mang lại."
-                      },
-                      {
-                        question: "Nội dung có đủ ý, phát triển tốt không?",
-                        answer: "Nội dung ở mức độ cơ bản là đủ ý. Bạn đã đề cập đến tình yêu thương, sự hỗ trợ, sự khuyến khích từ cha mẹ và vai trò của anh chị em. Tuy nhiên, ở trình độ Beginner, bài viết có thể tập trung vào những khía cạnh đơn giản và cụ thể hơn về gia đình, ví dụ như các thành viên trong gia đình, hoạt động gia đình thường ngày."
-                      },
-                      {
-                        question: "Các lập luận có thuyết phục, rõ ràng và có dẫn chứng phù hợp không?",
-                        answer: "Vì đây là bài viết giới thiệu về gia đình nên không yêu cầu lập luận phức tạp. Các ý tưởng được trình bày rõ ràng và dễ hiểu, phù hợp với trình độ Beginner."
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          };
-          
-          setFeedbackData(mockFeedback);
-          success('Đã nhận phản hồi', 'Phản hồi cho bài viết của bạn đã sẵn sàng');
-          setShowFeedback(true);
-        } catch (err) {
-          console.error('Error submitting writing:', err);
-          error('Đã xảy ra lỗi', 'Không thể nhận phản hồi cho bài viết của bạn');
-        } finally {
-          setIsSubmitting(false);
-        }
+      // In a real-world scenario with actual API:
+      // const result = await writingService.submitWriting(submission);
+      // setFeedbackData(result);
+      
+      // Mock response for development
+      setTimeout(() => {
+        const mockFeedback: WritingFeedback = {
+          title: "1. Tổng quan",
+          points: [
+            "Bài viết của bạn là một đoạn văn ngắn gọn giới thiệu về gia đình và tầm quan trọng của gia đình đối với bạn.",
+            "Nhìn chung, bài viết đã đáp ứng được yêu cầu đề bài ở mức độ cơ bản, thể hiện được tình cảm và sự trân trọng của bạn dành cho gia đình.",
+            "Điểm mạnh nổi bật là bạn đã diễn đạt được ý chính một cách rõ ràng và mạch lạc, sử dụng từ vựng phù hợp với trình độ hiện tại.",
+            "Tuy nhiên, để bài viết trở nên tốt hơn, bạn cần chú ý hơn đến việc sử dụng cấu trúc câu đơn giản và tự nhiên hơn, cũng như mở rộng vốn từ vựng cơ bản về chủ đề gia đình."
+          ],
+          sections: [
+            {
+              title: "2. Phân tích chi tiết",
+              subsections: [
+                {
+                  title: "2.1. Mức độ hoàn thành yêu cầu đề bài",
+                  points: [
+                    {
+                      question: "Bài viết có bám sát đề bài không?",
+                      answer: "Có, bài viết bám sát đề bài \"gia đình\" bằng cách giới thiệu về gia đình bạn và những giá trị mà gia đình mang lại."
+                    },
+                    {
+                      question: "Nội dung có đủ ý, phát triển tốt không?",
+                      answer: "Nội dung ở mức độ cơ bản là đủ ý. Bạn đã đề cập đến tình yêu thương, sự hỗ trợ, sự khuyến khích từ cha mẹ và vai trò của anh chị em. Tuy nhiên, ở trình độ Beginner, bài viết có thể tập trung vào những khía cạnh đơn giản và cụ thể hơn về gia đình, ví dụ như các thành viên trong gia đình, hoạt động gia đình thường ngày."
+                    },
+                    {
+                      question: "Các lập luận có thuyết phục, rõ ràng và có dẫn chứng phù hợp không?",
+                      answer: "Vì đây là bài viết giới thiệu về gia đình nên không yêu cầu lập luận phức tạp. Các ý tưởng được trình bày rõ ràng và dễ hiểu, phù hợp với trình độ Beginner."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        };
+        
+        setFeedbackData(mockFeedback);
+        setIsSubmitting(false);
+        success('Đã nhận phản hồi', 'Phản hồi cho bài viết của bạn đã sẵn sàng');
+        setShowFeedback(true);
       }, 2000);
       
     } catch (err) {
@@ -176,7 +167,14 @@ const WritingPractice: React.FC = () => {
                 onClick={handleSubmitWriting}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Đang xử lý...' : 'Nhận phản hồi'}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang xử lý...
+                  </>
+                ) : (
+                  'Nhận phản hồi'
+                )}
               </Button>
             </div>
           </>

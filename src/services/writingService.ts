@@ -38,11 +38,28 @@ export const writingService = {
   // Submit writing for feedback
   submitWriting: async (submission: WritingSubmission): Promise<WritingFeedback> => {
     try {
-      const response = await apiService.post<ApiResponse<WritingFeedback>>(
-        '/writing/feedback', 
-        submission
-      );
-      return response.data;
+      // Get the raw response first
+      const response = await fetch(`${apiService.getBaseUrl()}/api/Writing/Feedback`, {
+        method: 'POST',
+        headers: apiService.getHeaders(),
+        body: JSON.stringify(submission)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      // Check the content type to determine how to process the response
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        // If it's JSON, parse it as JSON
+        const jsonData = await response.json();
+        return jsonData.data || jsonData;
+      } else {
+        // If it's not JSON, throw an error since we expect a WritingFeedback object
+        throw new Error('Unexpected response format');
+      }
     } catch (error) {
       console.error('Error submitting writing:', error);
       throw error;
@@ -52,8 +69,8 @@ export const writingService = {
   // Get writing history
   getWritingHistory: async (): Promise<WritingSubmission[]> => {
     try {
-      const response = await apiService.get<ApiResponse<WritingSubmission[]>>('/writing/history');
-      return response.data;
+      const response = await apiService.get<ApiResponse<WritingSubmission[]>>('/api/Writing/History');
+      return (response as ApiResponse<WritingSubmission[]>).data || [];
     } catch (error) {
       console.error('Error fetching writing history:', error);
       throw error;
@@ -64,10 +81,10 @@ export const writingService = {
   saveDraft: async (submission: WritingSubmission): Promise<{ id: string }> => {
     try {
       const response = await apiService.post<ApiResponse<{ id: string }>>(
-        '/writing/drafts', 
+        '/api/Writing/Drafts', 
         submission
       );
-      return response.data;
+      return (response as ApiResponse<{ id: string }>).data || { id: '' };
     } catch (error) {
       console.error('Error saving draft:', error);
       throw error;
@@ -77,8 +94,8 @@ export const writingService = {
   // Get drafts
   getDrafts: async (): Promise<WritingDraft[]> => {
     try {
-      const response = await apiService.get<ApiResponse<WritingDraft[]>>('/writing/drafts');
-      return response.data;
+      const response = await apiService.get<ApiResponse<WritingDraft[]>>('/api/Writing/Drafts');
+      return (response as ApiResponse<WritingDraft[]>).data || [];
     } catch (error) {
       console.error('Error fetching drafts:', error);
       throw error;
@@ -88,8 +105,8 @@ export const writingService = {
   // Get draft by ID
   getDraftById: async (draftId: string): Promise<WritingDraft> => {
     try {
-      const response = await apiService.get<ApiResponse<WritingDraft>>(`/writing/drafts/${draftId}`);
-      return response.data;
+      const response = await apiService.get<ApiResponse<WritingDraft>>(`/api/Writing/Drafts/${draftId}`);
+      return (response as ApiResponse<WritingDraft>).data;
     } catch (error) {
       console.error('Error fetching draft:', error);
       throw error;
@@ -100,10 +117,10 @@ export const writingService = {
   updateDraft: async (draftId: string, submission: WritingSubmission): Promise<WritingDraft> => {
     try {
       const response = await apiService.put<ApiResponse<WritingDraft>>(
-        `/writing/drafts/${draftId}`, 
+        `/api/Writing/Drafts/${draftId}`, 
         submission
       );
-      return response.data;
+      return (response as ApiResponse<WritingDraft>).data;
     } catch (error) {
       console.error('Error updating draft:', error);
       throw error;
@@ -114,9 +131,9 @@ export const writingService = {
   deleteDraft: async (draftId: string): Promise<{ success: boolean }> => {
     try {
       const response = await apiService.delete<ApiResponse<{ success: boolean }>>(
-        `/writing/drafts/${draftId}`
+        `/api/Writing/Drafts/${draftId}`
       );
-      return response.data;
+      return (response as ApiResponse<{ success: boolean }>).data || { success: true };
     } catch (error) {
       console.error('Error deleting draft:', error);
       throw error;
