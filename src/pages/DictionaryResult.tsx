@@ -1,61 +1,82 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Volume2 } from 'lucide-react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { dictionaryService, WordDefinition } from '@/services/dictionaryService';
+import { useApi } from '@/hooks/use-api';
+import { useToast } from '@/hooks/use-toast';
 
 const DictionaryResult: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const searchParams = new URLSearchParams(location.search);
   const keyword = searchParams.get('keyword') || '';
+  
+  const [wordData, setWordData] = useState<WordDefinition | null>(null);
+  const { isLoading, request } = useApi();
 
-  // Mocked result data for the example
-  const resultData = {
-    word: keyword?.toUpperCase() || 'METICULOUS',
+  useEffect(() => {
+    const fetchWordDefinition = async () => {
+      if (!keyword) {
+        navigate('/dictionary');
+        return;
+      }
+
+      try {
+        const result = await request(
+          () => dictionaryService.searchWord(keyword),
+          {
+            skipToast: true,
+            errorMessage: "Không thể lấy dữ liệu từ điển"
+          }
+        );
+        
+        if (result) {
+          setWordData(result as WordDefinition);
+        } else {
+          toast({
+            title: "Không tìm thấy từ",
+            description: `Không tìm thấy từ "${keyword}" trong từ điển`,
+            variant: "destructive"
+          });
+          // Wait a moment before navigating back
+          setTimeout(() => navigate('/dictionary'), 2000);
+        }
+      } catch (err) {
+        console.error('Error fetching word definition:', err);
+        setTimeout(() => navigate('/dictionary'), 2000);
+      }
+    };
+
+    fetchWordDefinition();
+  }, [keyword, navigate, request, toast]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-engace-light dark:bg-gray-900">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-engace-purple mx-auto mb-4"></div>
+            <p className="text-lg dark:text-white">Đang tải dữ liệu từ điển...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback to empty definitions if data isn't loaded yet
+  const resultData = wordData || {
+    word: keyword.toUpperCase(),
+    translations: [],
+    examples: [],
     pronunciation: {
-      ipa: "/məˈtɪkjələs/ (Anh - Mỹ)",
-      spelling: "me-TIC-u-lous (nhấn âm thứ hai)"
-    },
-    definitions: [
-      {
-        type: "Tính từ",
-        mainDefinition: "Tỉ mỉ, kỹ lưỡng, chú trọng đến từng chi tiết nhỏ nhất.",
-        examples: [
-          {
-            en: "She is a meticulous researcher.",
-            vi: "Cô ấy là một nhà nghiên cứu rất tỉ mỉ."
-          },
-          {
-            en: "He kept meticulous records.",
-            vi: "Anh ấy lưu giữ hồ sơ một cách tỉ mỉ."
-          }
-        ]
-      }
-    ],
-    usage: [
-      {
-        pattern: "be meticulous about (something)",
-        meaning: "Tỉ mỉ về cái gì đó.",
-        examples: [
-          {
-            en: "She's always been meticulous about her appearance.",
-            vi: "Cô ấy luôn tỉ mỉ về ngoại hình của mình."
-          }
-        ]
-      },
-      {
-        pattern: "meticulous attention to detail",
-        meaning: "Sự chú ý tỉ mỉ đến từng chi tiết.",
-        examples: [
-          {
-            en: "The project requires meticulous attention to detail.",
-            vi: "Dự án này đòi hỏi sự chú ý tỉ mỉ đến từng chi tiết."
-          }
-        ]
-      }
-    ]
+      ipa: "",
+      spelling: ""
+    }
   };
 
   return (
@@ -83,62 +104,82 @@ const DictionaryResult: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-8">
-            {/* Phát âm */}
-            <div>
-              <h2 className="text-xl font-bold mb-4">1. PHÁT ÂM</h2>
-              <ul className="list-disc pl-6 space-y-3">
-                <li><span className="font-medium">IPA:</span> {resultData.pronunciation.ipa}</li>
-                <li><span className="font-medium">Trọng âm:</span> {resultData.pronunciation.spelling}</li>
-              </ul>
-            </div>
-
-            {/* Giải nghĩa */}
-            <div>
-              <h2 className="text-xl font-bold mb-4">2. GIẢI NGHĨA</h2>
-              {resultData.definitions.map((def, index) => (
-                <div key={index} className="mb-4">
+          {wordData ? (
+            <div className="space-y-8">
+              {/* Phát âm */}
+              {wordData.phonetic && (
+                <div>
+                  <h2 className="text-xl font-bold mb-4">1. PHÁT ÂM</h2>
                   <ul className="list-disc pl-6 space-y-3">
-                    <li>
-                      <span className="font-medium">Nghĩa phổ biến nhất (tính từ):</span> {def.mainDefinition}
-                      <ul className="list-disc pl-8 mt-2 space-y-2">
-                        {def.examples.map((example, idx) => (
-                          <li key={idx}>
-                            <div className="italic">Ví dụ: {example.en} → {example.vi}</div>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
+                    <li><span className="font-medium">IPA:</span> {wordData.phonetic}</li>
                   </ul>
                 </div>
-              ))}
-            </div>
+              )}
 
-            {/* Ứng dụng */}
-            <div>
-              <h2 className="text-xl font-bold mb-4">3. ỨNG DỤNG VÀO NGỮ PHÁP</h2>
-              <ul className="list-disc pl-6 space-y-3">
-                <li><span className="font-medium">Loại từ:</span> Tính từ</li>
-                <li>
-                  <span className="font-medium">Cấu trúc câu phổ biến:</span>
-                  <ul className="list-disc pl-8 mt-2 space-y-4">
-                    {resultData.usage.map((usage, idx) => (
-                      <li key={idx}>
-                        <div className="italic">{usage.pattern}: {usage.meaning}</div>
-                        <ul className="list-disc pl-8 mt-2">
-                          {usage.examples.map((example, exIdx) => (
-                            <li key={exIdx} className="italic">
-                              Ví dụ: {example.en} → {example.vi}
-                            </li>
-                          ))}
-                        </ul>
-                      </li>
+              {/* Giải nghĩa */}
+              {wordData.translations && wordData.translations.length > 0 && (
+                <div>
+                  <h2 className="text-xl font-bold mb-4">2. GIẢI NGHĨA</h2>
+                  {wordData.translations.map((translation, index) => (
+                    <div key={index} className="mb-4">
+                      <ul className="list-disc pl-6 space-y-3">
+                        <li>
+                          <span className="font-medium">Nghĩa ({translation.partOfSpeech}):</span>
+                          <ul className="list-disc pl-8 mt-2 space-y-2">
+                            {translation.definitions.map((def, idx) => (
+                              <li key={idx}>
+                                <div>{def.definition}</div>
+                                {def.example && (
+                                  <div className="italic mt-1">Ví dụ: {def.example}</div>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </li>
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Examples */}
+              {wordData.examples && wordData.examples.length > 0 && (
+                <div>
+                  <h2 className="text-xl font-bold mb-4">3. VÍ DỤ</h2>
+                  <ul className="list-disc pl-6 space-y-3">
+                    {wordData.examples.map((example, idx) => (
+                      <li key={idx} className="italic">{example}</li>
                     ))}
                   </ul>
-                </li>
-              </ul>
+                </div>
+              )}
+
+              {/* Related Words */}
+              {wordData.relatedWords && wordData.relatedWords.length > 0 && (
+                <div>
+                  <h2 className="text-xl font-bold mb-4">4. TỪ LIÊN QUAN</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {wordData.relatedWords.map((word, idx) => (
+                      <Button
+                        key={idx}
+                        variant="outline"
+                        className="rounded-full border-gray-300"
+                        onClick={() => {
+                          navigate(`/dictionary/result?keyword=${encodeURIComponent(word)}`);
+                        }}
+                      >
+                        {word}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400">Không có dữ liệu từ điển cho từ này.</p>
+            </div>
+          )}
         </div>
       </main>
     </div>

@@ -32,7 +32,7 @@ export const dictionaryService = {
   searchWord: async (keyword: string): Promise<WordDefinition> => {
     try {
       const response = await apiService.get<ApiResponse<WordDefinition>>(
-        `/dictionary/search?keyword=${encodeURIComponent(keyword)}`
+        `/api/Dictionary/Search?keyword=${encodeURIComponent(keyword)}`
       );
       return response.data;
     } catch (error) {
@@ -44,7 +44,7 @@ export const dictionaryService = {
   // Get search history
   getSearchHistory: async (): Promise<SearchHistoryItem[]> => {
     try {
-      const response = await apiService.get<ApiResponse<SearchHistoryItem[]>>('/dictionary/history');
+      const response = await apiService.get<ApiResponse<SearchHistoryItem[]>>('/api/Dictionary/History');
       return response.data;
     } catch (error) {
       console.error('Error fetching search history:', error);
@@ -56,7 +56,7 @@ export const dictionaryService = {
   addToFavorites: async (word: string): Promise<{ success: boolean }> => {
     try {
       const response = await apiService.post<ApiResponse<{ success: boolean }>>(
-        '/dictionary/favorites', 
+        '/api/Dictionary/Favorites', 
         { word }
       );
       return response.data;
@@ -69,7 +69,7 @@ export const dictionaryService = {
   // Get favorite words
   getFavorites: async (): Promise<string[]> => {
     try {
-      const response = await apiService.get<ApiResponse<string[]>>('/dictionary/favorites');
+      const response = await apiService.get<ApiResponse<string[]>>('/api/Dictionary/Favorites');
       return response.data;
     } catch (error) {
       console.error('Error fetching favorites:', error);
@@ -81,7 +81,7 @@ export const dictionaryService = {
   removeFromFavorites: async (word: string): Promise<{ success: boolean }> => {
     try {
       const response = await apiService.delete<ApiResponse<{ success: boolean }>>(
-        `/dictionary/favorites/${encodeURIComponent(word)}`
+        `/api/Dictionary/Favorites/${encodeURIComponent(word)}`
       );
       return response.data;
     } catch (error) {

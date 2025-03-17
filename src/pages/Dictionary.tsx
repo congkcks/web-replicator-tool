@@ -8,35 +8,44 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useToast } from '@/hooks/use-toast';
 import { dictionaryService, SearchHistoryItem } from '@/services/dictionaryService';
+import { useApi } from '@/hooks/use-api';
 
 const Dictionary: React.FC = () => {
   const navigate = useNavigate();
   const { error } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  
+  const { isLoading, request } = useApi();
 
   // Fetch recent searches on component mount
   useEffect(() => {
     const fetchRecentSearches = async () => {
       try {
-        // In a real-world scenario, this would call the API
-        // For demonstration, we'll use mock data
+        const history = await request(
+          () => dictionaryService.getSearchHistory(),
+          {
+            skipToast: true,
+            errorMessage: "Không thể lấy lịch sử tìm kiếm"
+          }
+        );
         
-        // Uncomment for production with real API
-        // const history = await dictionaryService.getSearchHistory();
-        // const terms = history.map(item => item.word);
-        // setRecentSearches(terms);
-        
-        // Mock data
-        setRecentSearches(['hello', 'beat around the bush', 'spontaneous', 'come across', 'innovative']);
+        if (history) {
+          const terms = (history as SearchHistoryItem[]).map(item => item.word);
+          setRecentSearches(terms);
+        } else {
+          // Fallback mock data
+          setRecentSearches(['hello', 'beat around the bush', 'spontaneous', 'come across', 'innovative']);
+        }
       } catch (err) {
         console.error('Error fetching search history:', err);
+        // Fallback to mock data if API fails
+        setRecentSearches(['hello', 'beat around the bush', 'spontaneous', 'come across', 'innovative']);
       }
     };
     
     fetchRecentSearches();
-  }, []);
+  }, [request]);
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -46,32 +55,42 @@ const Dictionary: React.FC = () => {
       return;
     }
     
-    setIsLoading(true);
-    
     try {
-      // In a real scenario, we might want to check if the word exists first
-      // const wordResult = await dictionaryService.searchWord(searchTerm.trim());
+      // Attempt to fetch the word definition
+      const wordResult = await request(
+        () => dictionaryService.searchWord(searchTerm.trim()),
+        {
+          skipToast: true,
+        }
+      );
       
-      // For demonstration, we'll navigate directly
-      navigate(`/dictionary/result?keyword=${encodeURIComponent(searchTerm.trim())}`);
+      if (wordResult) {
+        // If successful, navigate to the result page
+        navigate(`/dictionary/result?keyword=${encodeURIComponent(searchTerm.trim())}`);
+      } else {
+        error('Không tìm thấy từ', 'Từ này không có trong từ điển của chúng tôi');
+      }
     } catch (err) {
       console.error('Error searching word:', err);
       error('Không thể tra cứu từ', 'Đã xảy ra lỗi khi tra cứu. Vui lòng thử lại sau.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleAddToFavorites = async (word: string) => {
     try {
-      // In a real scenario, this would call the API
-      // await dictionaryService.addToFavorites(word);
+      if (!word.trim()) {
+        return;
+      }
       
-      // For demonstration
-      toast.success('Đã thêm vào danh sách yêu thích');
+      await request(
+        () => dictionaryService.addToFavorites(word),
+        {
+          successMessage: 'Đã thêm vào danh sách yêu thích',
+          errorMessage: 'Không thể thêm vào danh sách yêu thích'
+        }
+      );
     } catch (err) {
       console.error('Error adding to favorites:', err);
-      toast.error('Không thể thêm vào danh sách yêu thích');
     }
   };
 

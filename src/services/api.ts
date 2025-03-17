@@ -4,7 +4,7 @@ class ApiService {
   private baseUrl: string;
   private authToken: string | null = null;
   
-  constructor(baseUrl: string = import.meta.env.VITE_API_URL || 'https://api.cdkace.com') {
+  constructor(baseUrl: string = import.meta.env.VITE_API_URL || 'https://localhost:5000') {
     this.baseUrl = baseUrl;
     // Try to get auth token from localStorage if it exists
     this.authToken = localStorage.getItem('auth_token');
@@ -91,4 +91,5 @@ class ApiService {
   }
 }
 
-export const apiService = new ApiService();
+// Create a new instance with the local API URL
+export const apiService = new ApiService('https://localhost:5000');
