@@ -15,19 +15,62 @@ export interface ConversationHistory {
   updatedAt: string;
 }
 
+export interface ApiResponse<T> {
+  data: T;
+  message: string;
+  status: number;
+  success: boolean;
+}
+
 export const consultationService = {
   // Send a message and get a response
-  sendMessage: (content: string): Promise<Message> => {
-    return apiService.post<Message>('/consultation/message', { content });
+  sendMessage: async (content: string): Promise<Message> => {
+    try {
+      const response = await apiService.post<ApiResponse<Message>>(
+        '/consultation/message', 
+        { content }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
+    }
   },
   
   // Get conversation history
-  getConversationHistory: (): Promise<ConversationHistory[]> => {
-    return apiService.get<ConversationHistory[]>('/consultation/history');
+  getConversationHistory: async (): Promise<ConversationHistory[]> => {
+    try {
+      const response = await apiService.get<ApiResponse<ConversationHistory[]>>('/consultation/history');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching conversation history:', error);
+      throw error;
+    }
   },
   
   // Clear conversation
-  clearConversation: (): Promise<{ success: boolean }> => {
-    return apiService.delete<{ success: boolean }>('/consultation/clear');
+  clearConversation: async (): Promise<{ success: boolean }> => {
+    try {
+      const response = await apiService.delete<ApiResponse<{ success: boolean }>>(
+        '/consultation/clear'
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error clearing conversation:', error);
+      throw error;
+    }
+  },
+  
+  // Get conversation by ID
+  getConversationById: async (conversationId: string): Promise<ConversationHistory> => {
+    try {
+      const response = await apiService.get<ApiResponse<ConversationHistory>>(
+        `/consultation/history/${conversationId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching conversation:', error);
+      throw error;
+    }
   }
 };

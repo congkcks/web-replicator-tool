@@ -28,19 +28,61 @@ export interface SubmissionResult {
   feedback: string;
 }
 
+export interface ApiResponse<T> {
+  data: T;
+  message: string;
+  status: number;
+  success: boolean;
+}
+
 export const exerciseService = {
   // Generate exercise
-  generateExercise: (params: ExerciseParams): Promise<ExerciseSet> => {
-    return apiService.post<ExerciseSet>('/exercises/generate', params);
+  generateExercise: async (params: ExerciseParams): Promise<ExerciseSet> => {
+    try {
+      const response = await apiService.post<ApiResponse<ExerciseSet>>(
+        '/exercises/generate', 
+        params
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error generating exercise:', error);
+      throw error;
+    }
   },
   
   // Submit exercise answers
-  submitAnswers: (exerciseId: string, answers: Record<number, string>): Promise<SubmissionResult> => {
-    return apiService.post<SubmissionResult>(`/exercises/${exerciseId}/submit`, { answers });
+  submitAnswers: async (exerciseId: string, answers: Record<number, string>): Promise<SubmissionResult> => {
+    try {
+      const response = await apiService.post<ApiResponse<SubmissionResult>>(
+        `/exercises/${exerciseId}/submit`, 
+        { answers }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error submitting answers:', error);
+      throw error;
+    }
   },
   
   // Get exercise history
-  getExerciseHistory: (): Promise<ExerciseSet[]> => {
-    return apiService.get<ExerciseSet[]>('/exercises/history');
+  getExerciseHistory: async (): Promise<ExerciseSet[]> => {
+    try {
+      const response = await apiService.get<ApiResponse<ExerciseSet[]>>('/exercises/history');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching exercise history:', error);
+      throw error;
+    }
+  },
+  
+  // Get exercise by ID
+  getExerciseById: async (exerciseId: string): Promise<ExerciseSet> => {
+    try {
+      const response = await apiService.get<ApiResponse<ExerciseSet>>(`/exercises/${exerciseId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching exercise:', error);
+      throw error;
+    }
   }
 };

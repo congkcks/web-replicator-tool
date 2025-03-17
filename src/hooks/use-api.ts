@@ -2,11 +2,19 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
+interface ApiResponse<T> {
+  data: T;
+  message: string;
+  status: number;
+  success: boolean;
+}
+
 interface UseApiOptions<T> {
   onSuccess?: (data: T) => void;
   onError?: (error: Error) => void;
   successMessage?: string;
   errorMessage?: string;
+  skipToast?: boolean;
 }
 
 export function useApi<T>() {
@@ -17,7 +25,7 @@ export function useApi<T>() {
 
   const request = useCallback(
     async <R = T>(
-      apiFunction: () => Promise<R>,
+      apiFunction: () => Promise<R | ApiResponse<R>>,
       options?: UseApiOptions<R>
     ): Promise<R | null> => {
       setIsLoading(true);
@@ -25,25 +33,33 @@ export function useApi<T>() {
 
       try {
         const result = await apiFunction();
-        setData(result as unknown as T); // Type cast as we're using a generic return type
+        
+        // Check if result is an ApiResponse
+        const responseData = (result as ApiResponse<R>)?.data 
+          ? (result as ApiResponse<R>).data 
+          : result as R;
+          
+        setData(responseData as unknown as T);
 
-        if (options?.successMessage) {
+        if (!options?.skipToast && options?.successMessage) {
           success('Thành công', options.successMessage);
         }
 
         if (options?.onSuccess) {
-          options.onSuccess(result);
+          options.onSuccess(responseData);
         }
 
-        return result;
+        return responseData;
       } catch (err) {
         const errorObject = err instanceof Error ? err : new Error('Unknown error');
         setError(errorObject);
 
-        if (options?.errorMessage) {
-          showError('Lỗi', options.errorMessage);
-        } else {
-          showError('Lỗi', errorObject.message);
+        if (!options?.skipToast) {
+          if (options?.errorMessage) {
+            showError('Lỗi', options.errorMessage);
+          } else {
+            showError('Lỗi', errorObject.message);
+          }
         }
 
         if (options?.onError) {
