@@ -20,6 +20,12 @@ export interface SearchHistoryItem {
   timestamp: string;
 }
 
+interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
+}
+
 export const dictionaryService = {
   // Search for a word
   searchWord: async (keyword: string): Promise<WordDefinition | string | null> => {
@@ -55,8 +61,8 @@ export const dictionaryService = {
   // Get search history
   getSearchHistory: async (): Promise<SearchHistoryItem[]> => {
     try {
-      const response = await apiService.get('/api/Dictionary/History');
-      return response.data || [];
+      const response = await apiService.get<ApiResponse<SearchHistoryItem[]>>('/api/Dictionary/History');
+      return (response as ApiResponse<SearchHistoryItem[]>).data || [];
     } catch (error) {
       console.error('Error fetching search history:', error);
       throw error;
@@ -66,11 +72,11 @@ export const dictionaryService = {
   // Add word to favorites
   addToFavorites: async (word: string): Promise<{ success: boolean }> => {
     try {
-      const response = await apiService.post(
+      const response = await apiService.post<ApiResponse<{ success: boolean }>>(
         '/api/Dictionary/Favorites', 
         { word }
       );
-      return response.data || { success: true };
+      return (response as ApiResponse<{ success: boolean }>).data || { success: true };
     } catch (error) {
       console.error('Error adding word to favorites:', error);
       throw error;
@@ -80,8 +86,8 @@ export const dictionaryService = {
   // Get favorite words
   getFavorites: async (): Promise<string[]> => {
     try {
-      const response = await apiService.get('/api/Dictionary/Favorites');
-      return response.data || [];
+      const response = await apiService.get<ApiResponse<string[]>>('/api/Dictionary/Favorites');
+      return (response as ApiResponse<string[]>).data || [];
     } catch (error) {
       console.error('Error fetching favorites:', error);
       throw error;
@@ -91,10 +97,10 @@ export const dictionaryService = {
   // Remove word from favorites
   removeFromFavorites: async (word: string): Promise<{ success: boolean }> => {
     try {
-      const response = await apiService.delete(
+      const response = await apiService.delete<ApiResponse<{ success: boolean }>>(
         `/api/Dictionary/Favorites/${encodeURIComponent(word)}`
       );
-      return response.data || { success: true };
+      return (response as ApiResponse<{ success: boolean }>).data || { success: true };
     } catch (error) {
       console.error('Error removing word from favorites:', error);
       throw error;
