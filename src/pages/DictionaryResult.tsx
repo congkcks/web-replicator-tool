@@ -8,6 +8,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { dictionaryService, WordDefinition } from '@/services/dictionaryService';
 import { useApi } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
+import { Card } from '@/components/ui/card';
 
 const DictionaryResult: React.FC = () => {
   const navigate = useNavigate();
@@ -17,7 +18,8 @@ const DictionaryResult: React.FC = () => {
   const keyword = searchParams.get('keyword') || '';
   
   const [wordData, setWordData] = useState<WordDefinition | null>(null);
-  const { isLoading, request } = useApi();
+  const [rawTextResponse, setRawTextResponse] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchWordDefinition = async () => {
@@ -26,17 +28,21 @@ const DictionaryResult: React.FC = () => {
         return;
       }
 
+      setIsLoading(true);
+      
       try {
-        const result = await request(
-          () => dictionaryService.searchWord(keyword),
-          {
-            skipToast: true,
-            errorMessage: "Không thể lấy dữ liệu từ điển"
-          }
-        );
+        const result = await dictionaryService.searchWord(keyword);
         
         if (result) {
-          setWordData(result as WordDefinition);
+          if (typeof result === 'string') {
+            // Handle text response
+            setRawTextResponse(result);
+            setWordData(null);
+          } else {
+            // Handle object response
+            setWordData(result as WordDefinition);
+            setRawTextResponse(null);
+          }
         } else {
           toast({
             title: "Không tìm thấy từ",
@@ -48,12 +54,68 @@ const DictionaryResult: React.FC = () => {
         }
       } catch (err) {
         console.error('Error fetching word definition:', err);
+        toast({
+          title: "Lỗi",
+          description: "Không thể tra cứu từ điển. Vui lòng thử lại sau.",
+          variant: "destructive"
+        });
         setTimeout(() => navigate('/dictionary'), 2000);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchWordDefinition();
-  }, [keyword, navigate, request, toast]);
+  }, [keyword, navigate, toast]);
+
+  // Parse sections from raw text response
+  const extractSection = (text: string, sectionTitle: string) => {
+    if (!text) return null;
+    
+    const sectionRegex = new RegExp(`## ${sectionTitle}([\\s\\S]*?)(?=## [0-9]\\.|$)`, 'i');
+    const match = text.match(sectionRegex);
+    return match ? match[1].trim() : null;
+  };
+
+  const renderTextContent = (text: string | null) => {
+    if (!text) return null;
+    
+    // Split lines and render with proper formatting
+    return text.split('\n').map((line, index) => {
+      // Check if the line is a sub-header
+      if (line.startsWith('- **')) {
+        return (
+          <p key={index} className="font-medium mb-2 mt-3">
+            {line.replace(/- \*\*(.*?)\*\*:?/, '$1:')}
+          </p>
+        );
+      } 
+      // Check if the line is a list item
+      else if (line.startsWith('- ')) {
+        return <li key={index} className="ml-6">{line.substring(2)}</li>;
+      }
+      // Check if the line is a nested list item
+      else if (line.startsWith('    - ') || line.startsWith('        - ')) {
+        return <li key={index} className="ml-12">{line.trim().substring(2)}</li>;
+      } 
+      // Check if the line is italic (example)
+      else if (line.startsWith('    *') || line.includes('*Ví dụ:*')) {
+        return (
+          <p key={index} className="italic ml-8 my-1">
+            {line.replace(/\*(.*?)\*/, '$1')}
+          </p>
+        );
+      }
+      // Empty line becomes a spacing
+      else if (line.trim() === '') {
+        return <div key={index} className="h-2"></div>;
+      }
+      // Regular paragraph
+      else {
+        return <p key={index} className="mb-2">{line}</p>;
+      }
+    });
+  };
 
   if (isLoading) {
     return (
@@ -92,7 +154,70 @@ const DictionaryResult: React.FC = () => {
             </Button>
           </div>
 
-          {wordData ? (
+          {/* Word Title */}
+          <h1 className="text-4xl font-bold text-purple-600 uppercase mb-2">
+            {keyword}
+          </h1>
+          <Separator className="bg-gradient-to-r from-purple-500 to-blue-500 h-1 rounded-full" />
+          
+          {/* Display raw text response if available */}
+          {rawTextResponse ? (
+            <div className="space-y-6 mt-6">
+              {/* 1. Phát âm */}
+              <div>
+                <h2 className="text-xl font-bold mb-4">1. PHÁT ÂM</h2>
+                <ul className="list-disc pl-0">
+                  {renderTextContent(extractSection(rawTextResponse, "1. PHÁT ÂM"))}
+                </ul>
+              </div>
+
+              {/* 2. Giải nghĩa */}
+              <div>
+                <h2 className="text-xl font-bold mb-4">2. GIẢI NGHĨA</h2>
+                <ul className="list-disc pl-0">
+                  {renderTextContent(extractSection(rawTextResponse, "2. GIẢI NGHĨA"))}
+                </ul>
+              </div>
+
+              {/* 3. Ứng dụng vào ngữ pháp */}
+              <div>
+                <h2 className="text-xl font-bold mb-4">3. ỨNG DỤNG VÀO NGỮ PHÁP</h2>
+                <ul className="list-disc pl-0">
+                  {renderTextContent(extractSection(rawTextResponse, "3. ỨNG DỤNG VÀO NGỮ PHÁP"))}
+                </ul>
+              </div>
+
+              {/* 4. Cụm từ và thành ngữ liên quan (if available) */}
+              {extractSection(rawTextResponse, "4. CỤM TỪ VÀ THÀNH NGỮ LIÊN QUAN") && (
+                <div>
+                  <h2 className="text-xl font-bold mb-4">4. CỤM TỪ VÀ THÀNH NGỮ LIÊN QUAN</h2>
+                  <ul className="list-disc pl-0">
+                    {renderTextContent(extractSection(rawTextResponse, "4. CỤM TỪ VÀ THÀNH NGỮ LIÊN QUAN"))}
+                  </ul>
+                </div>
+              )}
+
+              {/* 5. THÔNG TIN THÚ VỊ & MẸO GHI NHỚ (if available) */}
+              {extractSection(rawTextResponse, "5. THÔNG TIN THÚ VỊ & MẸO GHI NHỚ") && (
+                <div>
+                  <h2 className="text-xl font-bold mb-4">5. THÔNG TIN THÚ VỊ & MẸO GHI NHỚ</h2>
+                  <ul className="list-disc pl-0">
+                    {renderTextContent(extractSection(rawTextResponse, "5. THÔNG TIN THÚ VỊ & MẸO GHI NHỚ"))}
+                  </ul>
+                </div>
+              )}
+
+              {/* 6. TỔNG KẾT (if available) */}
+              {extractSection(rawTextResponse, "6. TỔNG KẾT") && (
+                <div>
+                  <h2 className="text-xl font-bold mb-4">6. TỔNG KẾT</h2>
+                  <ul className="list-disc pl-0">
+                    {renderTextContent(extractSection(rawTextResponse, "6. TỔNG KẾT"))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ) : wordData ? (
             <div className="space-y-8">
               {/* Word Title */}
               <h1 className="text-4xl font-bold text-purple-600 uppercase mb-2">

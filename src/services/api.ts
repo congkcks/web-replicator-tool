@@ -10,6 +10,24 @@ class ApiService {
     this.authToken = localStorage.getItem('auth_token');
   }
 
+  // Get the base URL
+  getBaseUrl(): string {
+    return this.baseUrl;
+  }
+
+  // Get headers with optional authentication
+  getHeaders(): HeadersInit {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    if (this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
+
+    return headers;
+  }
+
   // Set authentication token
   setAuthToken(token: string) {
     this.authToken = token;

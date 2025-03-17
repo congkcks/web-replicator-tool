@@ -20,21 +20,32 @@ export interface SearchHistoryItem {
   timestamp: string;
 }
 
-export interface ApiResponse<T> {
-  data: T;
-  message: string;
-  status: number;
-  success: boolean;
-}
-
 export const dictionaryService = {
   // Search for a word
-  searchWord: async (keyword: string): Promise<WordDefinition> => {
+  searchWord: async (keyword: string): Promise<WordDefinition | string | null> => {
     try {
-      const response = await apiService.get<ApiResponse<WordDefinition>>(
-        `/api/Dictionary/Search?keyword=${encodeURIComponent(keyword)}`
-      );
-      return response.data;
+      // Get the raw response first
+      const response = await fetch(`${apiService.getBaseUrl()}/api/Dictionary/Search?keyword=${encodeURIComponent(keyword)}`, {
+        method: 'GET',
+        headers: apiService.getHeaders(),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      // Check the content type to determine how to process the response
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        // If it's JSON, parse it as JSON
+        const jsonData = await response.json();
+        return jsonData.data || jsonData;
+      } else {
+        // If it's not JSON, treat it as text
+        const textData = await response.text();
+        return textData;
+      }
     } catch (error) {
       console.error('Error searching word:', error);
       throw error;
@@ -44,8 +55,8 @@ export const dictionaryService = {
   // Get search history
   getSearchHistory: async (): Promise<SearchHistoryItem[]> => {
     try {
-      const response = await apiService.get<ApiResponse<SearchHistoryItem[]>>('/api/Dictionary/History');
-      return response.data;
+      const response = await apiService.get('/api/Dictionary/History');
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching search history:', error);
       throw error;
@@ -55,11 +66,11 @@ export const dictionaryService = {
   // Add word to favorites
   addToFavorites: async (word: string): Promise<{ success: boolean }> => {
     try {
-      const response = await apiService.post<ApiResponse<{ success: boolean }>>(
+      const response = await apiService.post(
         '/api/Dictionary/Favorites', 
         { word }
       );
-      return response.data;
+      return response.data || { success: true };
     } catch (error) {
       console.error('Error adding word to favorites:', error);
       throw error;
@@ -69,8 +80,8 @@ export const dictionaryService = {
   // Get favorite words
   getFavorites: async (): Promise<string[]> => {
     try {
-      const response = await apiService.get<ApiResponse<string[]>>('/api/Dictionary/Favorites');
-      return response.data;
+      const response = await apiService.get('/api/Dictionary/Favorites');
+      return response.data || [];
     } catch (error) {
       console.error('Error fetching favorites:', error);
       throw error;
@@ -80,10 +91,10 @@ export const dictionaryService = {
   // Remove word from favorites
   removeFromFavorites: async (word: string): Promise<{ success: boolean }> => {
     try {
-      const response = await apiService.delete<ApiResponse<{ success: boolean }>>(
+      const response = await apiService.delete(
         `/api/Dictionary/Favorites/${encodeURIComponent(word)}`
       );
-      return response.data;
+      return response.data || { success: true };
     } catch (error) {
       console.error('Error removing word from favorites:', error);
       throw error;
